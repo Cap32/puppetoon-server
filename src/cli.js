@@ -101,7 +101,8 @@ yargs
 			;
 		},
 		handler({ force }) {
-			stop({ force }).catch((err) => logger.error(err.message));
+			const options = { force, name, workspace: name };
+			stop(options).catch((err) => logger.error(err.message));
 		},
 	})
 	.env(upperCase(name))
