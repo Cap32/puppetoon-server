@@ -4,8 +4,8 @@
   "version": "0.0.0-1",
   "main": "lib/index",
   "bin": {
-    "puppetoon-server": "bin/puppetoon.js",
-    "puppetoon": "bin/puppetoon.js"
+    "puppetoon-server": "bin/puppetoon",
+    "puppetoon": "bin/puppetoon"
   },
   "files": [
     "*.md",
