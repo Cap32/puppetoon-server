@@ -33,7 +33,7 @@ yargs
 					daemon: {
 						alias: 'd',
 						desc: 'Use as a daemon',
-						default: false,
+						default: true,
 						type: 'bool',
 					},
 					logLevel: {
@@ -65,8 +65,9 @@ yargs
 			try {
 				await start({
 					...argv,
-					logLevel: isDev ? 'DEBUG' : 'INFO',
 					name,
+					daemon: isDev ? false : argv.daemon,
+					logLevel: isDev ? 'DEBUG' : 'INFO',
 					workspace: name,
 					execCommand: isDev ? 'babel-node' : 'node',
 					watch: isDev,

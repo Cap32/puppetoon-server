@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "start": "yarn cli start",
+    "start:prod": "yarn build && ./bin/puppetoon.js start",
     "cli": "cross-env NODE_ENV=development ./bin/puppetoon.js",
     "client": "babel-node test/client.js",
     "prebuild": "rimraf lib",
