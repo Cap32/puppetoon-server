@@ -11,7 +11,8 @@ export default function createRouter(routes) {
 				logger.debug('res', res);
 			}
 			catch (err) {
-				res.error = err.message || 'UNKNOWN ERROR';
+				const { message = 'Unkown error' } = err;
+				res.error = `Failed to call "${type}": ${message}`;
 			}
 			response(res);
 		}

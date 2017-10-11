@@ -15,15 +15,16 @@ export default class Routes {
 		const id = uuid();
 		const wsEndpoint = this._browser.wsEndpoint();
 		await this._queue.add(id, { priority });
-		return { ok: true, id, wsEndpoint };
+		return { id, wsEndpoint };
 	}
 
 	closePage(payload) {
 		logger.info('closePage', payload);
 
 		const { id } = payload;
+		if (!id) { throw new Error('Missing id'); }
 		this._queue.remove(id);
-		return { ok: true, id };
+		return { id };
 	}
 
 	getQueueSize() {

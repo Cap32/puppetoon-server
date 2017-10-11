@@ -32,11 +32,12 @@ export default class APIServer extends EventEmitter {
 		const callbacks = this._callbacks;
 
 		const send = (type, payload) => {
-			return new Promise((resolve) => {
+			return new Promise((resolve, reject) => {
 				const _id = uuid();
 				callbacks[_id] = (res) => {
 					Reflect.deleteProperty(callbacks, _id);
-					resolve(res);
+					if (res.error) { reject(res); }
+					else { resolve(res); }
 				};
 				this._ws.send(JSON.stringify({ _id, type, payload }));
 				const handler = (messageId, res) => {
