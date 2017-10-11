@@ -53,7 +53,7 @@ yargs
 			try {
 				await start({
 					...argv,
-					logLevel: 'INFO',
+					logLevel: isDev ? 'DEBUG' : 'INFO',
 					name: 'puppetoon-server',
 					execCommand: isDev ? 'babel-node' : 'node',
 					watch: isDev,
@@ -82,20 +82,12 @@ yargs
 						desc: 'Stop without confirming',
 						type: 'bool',
 					},
-					l: {
-						alias: 'logLevel',
-						desc: 'Log level',
-						choices: [
-							'ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'OFF',
-						],
-						default: 'INFO',
-					},
 				})
 				.argv
 			;
 		},
-		handler(argv) {
-			stop(argv).catch((err) => logger.error(err.message));
+		handler({ force }) {
+			stop({ force }).catch((err) => logger.error(err.message));
 		},
 	})
 	.env(upperCase(name))
