@@ -18,7 +18,7 @@
     "client": "babel-node test/client.js",
     "prebuild": "rimraf lib",
     "build": "babel src -d lib",
-    "preversion": "yarn test && yarn build"
+    "preversion": "yarn build"
   },
   "author": "Cap32",
   "repository": "Cap32/puppetoon-server",
