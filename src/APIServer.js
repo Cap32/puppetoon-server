@@ -12,8 +12,15 @@ export default class APIServer extends EventEmitter {
 		const wss = new WebSocket.Server(options);
 		this._wss = wss;
 
+		function heartbeat() {
+			this.isAlive = true;
+		}
+
 		wss.on('connection', (ws) => {
 			logger.debug('connected');
+
+			ws.isAlive = true;
+			ws.on('pong', heartbeat);
 
 			ws.on('message', (data) => {
 				try {
@@ -32,6 +39,15 @@ export default class APIServer extends EventEmitter {
 			});
 		});
 
+		this._heartbeatInterval = setInterval(function ping() {
+			wss.clients.forEach(function each(ws) {
+				if (ws.isAlive === false) return ws.terminate();
+
+				ws.isAlive = false;
+				ws.ping('', false, true);
+			});
+		}, 30000);
+
 		wss.on('error', logger.error);
 	}
 
@@ -40,6 +56,7 @@ export default class APIServer extends EventEmitter {
 	}
 
 	close(callback) {
+		clearInterval(this._heartbeatInterval);
 		this._wss.close(callback);
 	}
 }
