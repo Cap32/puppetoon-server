@@ -7,7 +7,9 @@ import Routes from './Routes';
 import createRouter from './createRouter';
 import { signals } from 'signal-exit';
 
-setLoggers('logLevel', 'DEBUG');
+const logLevel = process.env.PUPPETOON_LOG_LEVEL || 'INFO';
+
+setLoggers('logLevel', logLevel);
 
 (async function main() {
 	const browser = new Browser();

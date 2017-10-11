@@ -3,12 +3,17 @@
   "description": "puppetoon-server",
   "version": "0.0.0",
   "main": "lib/index",
+  "bin": {
+    "puppetoon-server": "bin/puppetoon.js",
+    "puppetoon": "bin/puppetoon.js"
+  },
   "files": [
     "*.md",
     "lib"
   ],
   "scripts": {
-    "start": "babel-node src/cli.js start",
+    "start": "yarn cli start",
+    "cli": "cross-env NODE_ENV=development ./bin/puppetoon.js",
     "client": "babel-node test/client.js",
     "prebuild": "rimraf lib",
     "build": "babel src -d lib",

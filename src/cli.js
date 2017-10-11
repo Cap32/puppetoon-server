@@ -6,6 +6,8 @@ import { upperCase } from 'lodash';
 import { name, version } from '../package.json';
 import { join } from 'path';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 // eslint-disable-next-line
 yargs
 	.usage('$0 <command> [args]')
@@ -16,19 +18,9 @@ yargs
 		builder(yargs) {
 			yargs // eslint-disable-line
 				.options({
-					name: {
-						desc: 'Server name',
-						type: 'string',
-					},
 					daemon: {
 						alias: 'd',
 						desc: 'Use as a daemon',
-						default: false,
-						type: 'bool',
-					},
-					production: {
-						alias: 'p',
-						desc: 'Short hand for set NODE_ENV="production" env',
 						default: false,
 						type: 'bool',
 					},
@@ -38,50 +30,19 @@ yargs
 						choices: [
 							'ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'OFF',
 						],
-					},
-					watch: {
-						alias: 'w',
-						desc: 'Enable watch mode',
-						type: 'bool',
+						default: 'INFO',
 					},
 					force: {
 						alias: 'f',
 						desc: 'Force restart even if the process is exists',
 						type: 'bool',
 					},
-					config: {
-						alias: 'c',
-						desc: 'Path to the config file',
-						default: '.potrc',
-						type: 'string',
-					},
-					configWalk: {
-						desc: 'Walk to resolve config file',
-						default: true,
-						type: 'bool',
-					},
 					cwd: {
 						desc: 'Root dir. Defaults to `process.cwd()`',
 						type: 'string',
 					},
-					execCommand: {
-						desc: 'Exec command',
-						type: 'string',
-					},
-					execArgs: {
-						desc: 'Exec args',
-						type: 'array',
-					},
 					logsDir: {
 						desc: 'Log files dir. Resolve from `cwd`',
-						type: 'string',
-					},
-					maxRestarts: {
-						desc: 'How many restarts are allowed within 60s. `-1` for infinite restarts. If `production` is `true`, default value is `-1`, otherwise is `0`',
-						type: 'number',
-					},
-					inspect: {
-						desc: 'Activate inspector. Require Node.js >= v6.3.0',
 						type: 'string',
 					},
 				})
@@ -92,11 +53,15 @@ yargs
 			try {
 				await start({
 					...argv,
-
-					// TODO
-					execCommand: 'babel-node',
-
+					logLevel: 'INFO',
+					name: 'puppetoon-server',
+					execCommand: isDev ? 'babel-node' : 'node',
+					watch: isDev,
+					maxRestarts: isDev ? 0 : -1,
+					inspect: isDev,
+					production: !isDev,
 					entry: join(__dirname, 'index.js'),
+					env: { PUPPETOON_LOG_LEVEL: isDev ? 'DEBUG' : argv.logLevel },
 				});
 			}
 			catch (err) {
