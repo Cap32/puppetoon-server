@@ -22,8 +22,8 @@ const {
 
 (async function main() {
 	try {
-		await ensureLogsDir(logsDir);
-		setLoggers('logLevel', logLevel);
+		const fullLogsDir = await ensureLogsDir(logsDir);
+		setLoggers({ logLevel, logsDir: fullLogsDir });
 
 		const browser = new Browser();
 		const queue = new Queue({ concurrency });
