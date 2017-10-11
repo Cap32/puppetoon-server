@@ -27,4 +27,8 @@ export default class Browser {
 	wsEndpoint() {
 		return this._browser.wsEndpoint();
 	}
+
+	version() {
+		return this._browser.version();
+	}
 }

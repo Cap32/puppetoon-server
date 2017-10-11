@@ -15,6 +15,9 @@ apiServer.listen(async (api) => {
 
 		await delay(2000);
 
+		const { version } = await api.version();
+		console.log('version', version);
+
 		const queueSize = await api.getQueueSize();
 		console.log('queue size', queueSize);
 

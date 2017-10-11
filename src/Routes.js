@@ -30,4 +30,8 @@ export default class Routes {
 	getQueueSize() {
 		return { size: this._queue.size };
 	}
+
+	async version() {
+		return { version: await this._browser.version() };
+	}
 }
