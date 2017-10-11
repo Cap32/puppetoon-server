@@ -2,7 +2,7 @@
 import logger from 'pot-logger';
 import uuid from 'uuid/v4';
 
-export default class Router {
+export default class Routes {
 	constructor(browser, queue) {
 		this._browser = browser;
 		this._queue = queue;
