@@ -7,11 +7,12 @@ export default class Queue {
 		this._queue = new PQueue(options);
 	}
 
-	async add(id) {
+	async add(id, options) {
 		const queue = this._queue;
-		const maybeDelay = queue.add(() => Promise.resolve());
-		queue.add(() =>
-			new Promise((resolve) => (this._callbacks[id] = resolve))
+		const maybeDelay = queue.add(() => Promise.resolve(), options);
+		queue.add(
+			() => new Promise((resolve) => (this._callbacks[id] = resolve)),
+			options,
 		);
 		return maybeDelay;
 	}

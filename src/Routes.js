@@ -11,9 +11,10 @@ export default class Routes {
 	async newPage(payload) {
 		logger.info('newPage', payload);
 
+		const { priority = 0 } = payload;
 		const id = uuid();
 		const wsEndpoint = this._browser.wsEndpoint();
-		await this._queue.add(id);
+		await this._queue.add(id, { priority });
 		return { ok: true, id, wsEndpoint };
 	}
 
