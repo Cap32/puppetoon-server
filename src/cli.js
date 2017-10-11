@@ -18,6 +18,18 @@ yargs
 		builder(yargs) {
 			yargs // eslint-disable-line
 				.options({
+					port: {
+						alias: 'p',
+						desc: 'Server port',
+						default: 8808,
+						type: 'number',
+					},
+					concurrency: {
+						alias: 'c',
+						desc: 'Max concurrency',
+						default: 50,
+						type: 'number',
+					},
 					daemon: {
 						alias: 'd',
 						desc: 'Use as a daemon',
@@ -61,7 +73,7 @@ yargs
 					inspect: isDev,
 					production: !isDev,
 					entry: join(__dirname, 'index.js'),
-					env: { PUPPETOON_LOG_LEVEL: isDev ? 'DEBUG' : argv.logLevel },
+					configToEnv: 'PUPPETOON_ARGS',
 				});
 			}
 			catch (err) {

@@ -7,14 +7,23 @@ import Routes from './Routes';
 import createRouter from './createRouter';
 import { signals } from 'signal-exit';
 
-const logLevel = process.env.PUPPETOON_LOG_LEVEL || 'INFO';
+const configs = (function () {
+	try { return JSON.parse(process.env.PUPPETOON_ARGS) || {}; }
+	catch (err) { return {}; }
+}());
+
+const {
+	logLevel = 'INFO',
+	port = 8808,
+	concurrency = 50,
+} = configs;
 
 setLoggers('logLevel', logLevel);
 
 (async function main() {
 	const browser = new Browser();
-	const queue = new Queue({ concurrency: 1 });
-	const apiServer = new APIServer({ port: 8808 });
+	const queue = new Queue({ concurrency });
+	const apiServer = new APIServer({ port });
 	const routes = new Routes(browser, queue);
 
 	await browser.launch();
