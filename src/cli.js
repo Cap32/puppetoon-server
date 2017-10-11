@@ -30,6 +30,11 @@ yargs
 						default: 50,
 						type: 'number',
 					},
+					headless: {
+						desc: 'Headless mode',
+						default: true,
+						type: 'bool',
+					},
 					daemon: {
 						alias: 'd',
 						desc: 'Use as a daemon',

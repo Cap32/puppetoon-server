@@ -17,6 +17,7 @@ const {
 	logLevel = 'INFO',
 	logsDir,
 	port = 8808,
+	headless = true,
 	concurrency = 50,
 } = configs;
 
@@ -30,7 +31,7 @@ const {
 		const apiServer = new APIServer({ port });
 		const routes = new Routes(browser, queue);
 
-		await browser.launch();
+		await browser.launch({ headless });
 
 		process.on('exit', () => {
 			apiServer.close();
