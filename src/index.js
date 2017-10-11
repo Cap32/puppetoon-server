@@ -5,39 +5,47 @@ import Browser from './Browser';
 import Queue from './Queue';
 import Routes from './Routes';
 import createRouter from './createRouter';
+import ensureLogsDir from './ensureLogsDir';
 import { signals } from 'signal-exit';
 
-const configs = (function () {
+const configs = (function genConfig() {
 	try { return JSON.parse(process.env.PUPPETOON_ARGS) || {}; }
 	catch (err) { return {}; }
 }());
 
 const {
 	logLevel = 'INFO',
+	logsDir,
 	port = 8808,
 	concurrency = 50,
 } = configs;
 
-setLoggers('logLevel', logLevel);
-
 (async function main() {
-	const browser = new Browser();
-	const queue = new Queue({ concurrency });
-	const apiServer = new APIServer({ port });
-	const routes = new Routes(browser, queue);
+	try {
+		await ensureLogsDir(logsDir);
+		setLoggers('logLevel', logLevel);
 
-	await browser.launch();
+		const browser = new Browser();
+		const queue = new Queue({ concurrency });
+		const apiServer = new APIServer({ port });
+		const routes = new Routes(browser, queue);
 
-	process.on('exit', () => {
-		apiServer.close();
-	});
+		await browser.launch();
 
-	signals().forEach((signal) => {
-		process.on(signal, process.exit);
-	});
+		process.on('exit', () => {
+			apiServer.close();
+		});
 
-	const runRouter = createRouter(routes);
-	apiServer.listen(runRouter);
+		signals().forEach((signal) => {
+			process.on(signal, process.exit);
+		});
 
-	logger.trace('browser launched');
+		const runRouter = createRouter(routes);
+		apiServer.listen(runRouter);
+
+		logger.trace('browser launched');
+	}
+	catch (err) {
+		logger.fatal(err);
+	}
 }());

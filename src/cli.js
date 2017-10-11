@@ -66,7 +66,8 @@ yargs
 				await start({
 					...argv,
 					logLevel: isDev ? 'DEBUG' : 'INFO',
-					name: 'puppetoon-server',
+					name,
+					workspace: name,
 					execCommand: isDev ? 'babel-node' : 'node',
 					watch: isDev,
 					maxRestarts: isDev ? 0 : -1,
