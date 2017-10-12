@@ -29,7 +29,6 @@
   "keywords": [],
   "license": "MIT",
   "dependencies": {
-    "fs-extra": "^4.0.2",
     "home-or-tmp": "^3.0.0",
     "lodash": "^4.17.4",
     "p-queue": "^2.2.0",

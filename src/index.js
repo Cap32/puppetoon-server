@@ -5,8 +5,9 @@ import Browser from './Browser';
 import Queue from './Queue';
 import Routes from './Routes';
 import createRouter from './createRouter';
-import ensureLogsDir from './ensureLogsDir';
+import getDefaultLogsDir from './getDefaultLogsDir';
 import { signals } from 'signal-exit';
+import { resolve } from 'path';
 
 const configs = (function genConfig() {
 	try { return JSON.parse(process.env.PUPPETOON_ARGS) || {}; }
@@ -15,7 +16,7 @@ const configs = (function genConfig() {
 
 const {
 	logLevel = 'INFO',
-	logsDir,
+	logsDir = getDefaultLogsDir(),
 	port = 8808,
 	headless = true,
 	concurrency = 50,
@@ -23,8 +24,7 @@ const {
 
 (async function main() {
 	try {
-		const fullLogsDir = await ensureLogsDir(logsDir);
-		setLoggers({ logLevel, logsDir: fullLogsDir });
+		setLoggers({ logLevel, logsDir: resolve(logsDir) });
 
 		const browser = new Browser();
 		const queue = new Queue({ concurrency });

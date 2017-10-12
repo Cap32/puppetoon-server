@@ -5,6 +5,7 @@ import { start, stop } from 'pot-js';
 import { upperCase } from 'lodash';
 import { name, version } from '../package.json';
 import { join } from 'path';
+import getDefaultLogsDir from './getDefaultLogsDir';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -61,6 +62,7 @@ yargs
 					logsDir: {
 						desc: 'Log files dir. Resolve from `cwd`',
 						type: 'string',
+						default: getDefaultLogsDir(),
 					},
 				})
 				.argv
@@ -72,13 +74,13 @@ yargs
 					...argv,
 					name,
 					daemon: isDev ? false : argv.daemon,
-					logLevel: isDev ? 'DEBUG' : 'INFO',
+					logLevel: isDev ? 'DEBUG' : argv.logLevel,
 					workspace: name,
 					execCommand: isDev ? 'babel-node' : 'node',
-					watch: isDev,
 					maxRestarts: isDev ? 0 : -1,
 					inspect: isDev,
 					production: !isDev,
+					watch: isDev,
 					entry: join(__dirname, 'index.js'),
 					configToEnv: 'PUPPETOON_ARGS',
 				});
