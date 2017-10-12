@@ -25,6 +25,10 @@ export default class Queue {
 		}
 	}
 
+	get pending() {
+		return this._queue.pending;
+	}
+
 	get size() {
 		return this._queue.size / 2;
 	}

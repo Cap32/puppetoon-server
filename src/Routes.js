@@ -27,11 +27,22 @@ export default class Routes {
 		return { id };
 	}
 
+	async version() {
+		return { version: await this._browser.version() };
+	}
+
 	getQueueSize() {
 		return { size: this._queue.size };
 	}
 
-	async version() {
-		return { version: await this._browser.version() };
+	getQueuePending() {
+		return { pending: this._queue.pending };
+	}
+
+	getQueue() {
+		return {
+			size: this._queue.size,
+			pending: this._queue.pending,
+		};
 	}
 }
