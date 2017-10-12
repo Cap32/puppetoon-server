@@ -3,7 +3,7 @@ import PQueue from 'p-queue';
 
 export default class Queue {
 	constructor(options) {
-		this._callbacks = {};
+		this._callbacks = new Map();
 		this._queue = new PQueue(options);
 	}
 
@@ -11,7 +11,7 @@ export default class Queue {
 		const queue = this._queue;
 		const maybeDelay = queue.add(() => Promise.resolve(), options);
 		queue.add(
-			() => new Promise((resolve) => (this._callbacks[id] = resolve)),
+			() => new Promise((resolve) => this._callbacks.set(id, resolve)),
 			options,
 		);
 		return maybeDelay;
@@ -19,9 +19,10 @@ export default class Queue {
 
 	remove(id) {
 		const callbacks = this._callbacks;
-		if (callbacks[id]) {
-			callbacks[id]();
-			Reflect.deleteProperty(callbacks, id);
+		if (callbacks.has(id)) {
+			const callback = callbacks.get(id);
+			callbacks.delete(id);
+			callback();
 		}
 	}
 

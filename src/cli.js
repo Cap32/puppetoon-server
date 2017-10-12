@@ -5,7 +5,7 @@ import { start, stop } from 'pot-js';
 import { upperCase } from 'lodash';
 import { name, version } from '../package.json';
 import { join } from 'path';
-import getDefaultLogsDir from './getDefaultLogsDir';
+import { getDefaultLogsDir } from './utils';
 
 const isDev = process.env.NODE_ENV === 'development';
 

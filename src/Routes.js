@@ -1,5 +1,4 @@
 
-import logger from 'pot-logger';
 import uuid from 'uuid/v4';
 
 export default class Routes {
@@ -9,8 +8,6 @@ export default class Routes {
 	}
 
 	async newPage(payload) {
-		logger.info('newPage', payload);
-
 		const { priority = 0 } = payload;
 		const id = uuid();
 		const wsEndpoint = this._browser.wsEndpoint();
@@ -19,8 +16,6 @@ export default class Routes {
 	}
 
 	closePage(payload) {
-		logger.info('closePage', payload);
-
 		const { id } = payload;
 		if (!id) { throw new Error('Missing id'); }
 		this._queue.remove(id);

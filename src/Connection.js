@@ -18,7 +18,10 @@ export default class Connection extends EventEmitter {
 	constructor(options, callback) {
 		super();
 
-		const wss = new WebSocket.Server(options);
+		const wss = new WebSocket.Server({
+			...options,
+			clientTracking: true,
+		});
 		this._wss = wss;
 
 		function heartbeat() {
@@ -50,7 +53,7 @@ export default class Connection extends EventEmitter {
 
 		this._heartbeatInterval = setInterval(function ping() {
 			wss.clients.forEach(function each(ws) {
-				if (ws.isAlive === false) return ws.terminate();
+				if (ws.isAlive === false) { return ws.terminate(); }
 
 				ws.isAlive = false;
 				ws.ping('', false, true);

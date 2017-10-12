@@ -5,7 +5,7 @@ import Browser from './Browser';
 import Queue from './Queue';
 import Routes from './Routes';
 import createRouter from './createRouter';
-import getDefaultLogsDir from './getDefaultLogsDir';
+import { getDefaultLogsDir } from './utils';
 import { signals } from 'signal-exit';
 import { resolve } from 'path';
 
@@ -27,8 +27,8 @@ const {
 		setLoggers({ logLevel, logsDir: resolve(logsDir) });
 
 		const browser = new Browser();
-		const queue = new Queue({ concurrency });
 		const connection = await Connection.create({ port });
+		const queue = new Queue({ concurrency }, connection);
 		const routes = new Routes(browser, queue);
 		await browser.launch({ headless });
 

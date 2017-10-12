@@ -1,14 +1,17 @@
 
-import logger from 'pot-logger';
+import { createLogger } from 'pot-logger';
+
+const requestLogger = createLogger('REQUEST', 'blue');
+const responseLogger = createLogger('RESPONSE', 'yellow');
 
 export default function createRouter(routes) {
 	return async function run(type, payload, response) {
 		if (routes[type]) {
-			logger.debug('called', type);
+			requestLogger.info(type, payload);
 			let res = {};
 			try {
 				res = await routes[type](payload);
-				logger.debug('res', res);
+				responseLogger.info(type, res);
 			}
 			catch (err) {
 				const { message = 'Unkown error' } = err;
@@ -17,7 +20,7 @@ export default function createRouter(routes) {
 			response(res);
 		}
 		else {
-			logger.warn('Unknown type', type);
+			requestLogger.warn('Unknown type', type);
 		}
 	};
 }
