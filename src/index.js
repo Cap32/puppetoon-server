@@ -1,6 +1,6 @@
 
 import logger, { setLoggers } from 'pot-logger';
-import APIServer from './APIServer';
+import Connection from './Connection';
 import Browser from './Browser';
 import Queue from './Queue';
 import Routes from './Routes';
@@ -28,13 +28,12 @@ const {
 
 		const browser = new Browser();
 		const queue = new Queue({ concurrency });
-		const apiServer = new APIServer({ port });
+		const connection = await Connection.create({ port });
 		const routes = new Routes(browser, queue);
-
 		await browser.launch({ headless });
 
 		process.on('exit', () => {
-			apiServer.close();
+			connection.close();
 		});
 
 		signals().forEach((signal) => {
@@ -42,7 +41,7 @@ const {
 		});
 
 		const runRouter = createRouter(routes);
-		apiServer.listen(runRouter);
+		connection.listen(runRouter);
 
 		logger.trace('browser launched');
 	}

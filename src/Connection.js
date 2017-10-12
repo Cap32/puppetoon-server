@@ -5,8 +5,17 @@ import WebSocket from 'ws';
 
 const EventType = 'API_CALL';
 
-export default class APIServer extends EventEmitter {
-	constructor(options) {
+export default class Connection extends EventEmitter {
+	static create(options) {
+		return new Promise((resolve, reject) => {
+			const connection = new Connection(options, (err) => {
+				if (err) { reject(err); }
+				else { resolve(connection); }
+			});
+		});
+	}
+
+	constructor(options, callback) {
 		super();
 
 		const wss = new WebSocket.Server(options);
@@ -48,7 +57,8 @@ export default class APIServer extends EventEmitter {
 			});
 		}, 30000);
 
-		wss.on('error', logger.error);
+		wss.on('listening', callback);
+		wss.on('error', callback);
 	}
 
 	listen(handler) {
