@@ -32,7 +32,7 @@
     "home-or-tmp": "^3.0.0",
     "lodash": "^4.17.4",
     "p-queue": "^2.2.0",
-    "pot-js": "^0.0.0-beta.41",
+    "pot-js": "^0.0.0-beta.42",
     "pot-logger": "^0.2.1",
     "puppeteer": "^0.11.0",
     "signal-exit": "^3.0.2",
