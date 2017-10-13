@@ -1,7 +1,7 @@
 {
   "name": "puppetoon-server",
   "description": "puppetoon-server",
-  "version": "0.0.0-7",
+  "version": "0.0.0-8",
   "main": "lib/index",
   "bin": {
     "puppetoon-server": "bin/puppetoon",
