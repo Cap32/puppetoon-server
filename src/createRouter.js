@@ -1,17 +1,19 @@
 
 import { createLogger } from 'pot-logger';
+import chalk from 'chalk';
 
-const requestLogger = createLogger('REQUEST', 'blue');
-const responseLogger = createLogger('RESPONSE', 'yellow');
+const requestLogger = createLogger('<=', 'green.bold');
+const responseLogger = createLogger('=>', 'magenta.bold');
 
 export default function createRouter(routes) {
 	return async function run(type, payload, response) {
 		if (routes[type]) {
-			requestLogger.info(type, payload);
+			const styledType = chalk.cyan(type);
+			requestLogger.info(styledType, payload);
 			let res = {};
 			try {
 				res = await routes[type](payload);
-				responseLogger.info(type, res);
+				responseLogger.info(styledType, res);
 			}
 			catch (err) {
 				const { message = 'Unkown error' } = err;
