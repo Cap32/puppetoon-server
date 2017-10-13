@@ -9,10 +9,7 @@ export default class Browser {
 
 	async launch(options) {
 		try {
-			this._browser = await puppeteer.launch({
-				args: ['--no-sandbox', '--disable-setuid-sandbox'],
-				...options,
-			});
+			this._browser = await puppeteer.launch(options);
 		}
 		catch (err) {
 			logger.fatal(err);

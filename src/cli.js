@@ -18,6 +18,7 @@ yargs
 		desc: 'Start process',
 		builder(yargs) {
 			yargs // eslint-disable-line
+				.usage('$0 start [options]')
 				.options({
 					port: {
 						alias: 'p',
@@ -64,6 +65,45 @@ yargs
 						type: 'string',
 						default: getDefaultLogsDir(),
 					},
+					executablePath: {
+						desc: 'Path to a Chromium executable to run instead of bundled Chromium. If executablePath is a relative path, then it is resolved relative to current working directory',
+						type: 'string',
+					},
+					args: {
+						desc: 'Additional arguments to pass to the Chromium instance',
+						type: 'array',
+						default: ['--no-sandbox', '--disable-setuid-sandbox'],
+					},
+					launchIgnoreHTTPSErrors: {
+						desc: 'Whether to ignore HTTPS errors during navigation',
+						type: 'bool',
+						default: false,
+					},
+					slowMo: {
+						desc: 'Slows down Puppeteer operations by the specified amount of milliseconds. Useful so that you can see what is going on',
+						type: 'number',
+					},
+					timeout: {
+						desc: 'Maximum time in milliseconds to wait for the Chrome instance to start (in seconds). Pass 0 to disable timeout',
+						type: 'number',
+						default: 30000,
+					},
+					dumpio: {
+						desc: 'Whether to pipe browser process stdout and stderr into process.stdout and process.stderr',
+						type: 'bool',
+						default: false,
+					},
+					userDataDir: {
+						desc: 'Path to a User Data Directory',
+						type: 'string',
+					},
+					devtools: {
+						desc: 'Whether to auto-open DevTools panel for each tab. If this option is true, the headless option will be set false',
+						type: 'bool',
+					},
+					env: {
+						desc: 'Process and Chromium environment variables',
+					},
 				})
 				.argv
 			;
@@ -97,6 +137,7 @@ yargs
 		desc: 'Stop process',
 		builder(yargs) {
 			yargs // eslint-disable-line
+				.usage('$0 stop [options]')
 				.options({
 					f: {
 						alias: 'force',

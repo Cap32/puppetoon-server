@@ -18,8 +18,17 @@ const {
 	logLevel = 'INFO',
 	logsDir = getDefaultLogsDir(),
 	port = 8808,
-	headless = true,
 	concurrency = 50,
+	headless = true,
+	ignoreHTTPSErrors,
+	executablePath,
+	slowMo,
+	args,
+	env,
+	timeout,
+	dumpio,
+	userDataDir,
+	devtools,
 } = configs;
 
 (async function main() {
@@ -30,7 +39,18 @@ const {
 		const connection = await Connection.create({ port });
 		const queue = new Queue({ concurrency }, connection);
 		const routes = new Routes(browser, queue);
-		await browser.launch({ headless });
+		await browser.launch({
+			headless,
+			ignoreHTTPSErrors,
+			executablePath,
+			slowMo,
+			args,
+			env,
+			timeout,
+			dumpio,
+			userDataDir,
+			devtools,
+		});
 
 		process.on('exit', () => {
 			connection.close();
