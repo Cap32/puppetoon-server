@@ -5,6 +5,7 @@ import { start, stop } from 'pot-js';
 import { upperCase } from 'lodash';
 import { name, version } from '../package.json';
 import { join } from 'path';
+import getStatus from './getStatus';
 import { getDefaultLogsDir } from './utils';
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -151,6 +152,26 @@ yargs
 		handler({ force }) {
 			const options = { force, name, workspace: name };
 			stop(options).catch((err) => logger.error(err.message));
+		},
+	})
+	.command({
+		command: 'status',
+		desc: 'Show status',
+		builder(yargs) {
+			yargs // eslint-disable-line
+				.usage('$0 status [options]')
+				.options({
+					verbose: {
+						alias: 'v',
+						desc: 'Verbose',
+						type: 'bool',
+					},
+				})
+				.argv
+			;
+		},
+		handler(argv) {
+			getStatus(argv).catch((err) => logger.error(err.message));
 		},
 	})
 	.env(upperCase(name))

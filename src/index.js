@@ -5,8 +5,7 @@ import Browser from './Browser';
 import Queue from './Queue';
 import Routes from './Routes';
 import createRouter from './createRouter';
-import { getDefaultLogsDir } from './utils';
-import { signals } from 'signal-exit';
+import { getDefaultLogsDir, addExitListener } from './utils';
 import { resolve } from 'path';
 
 const configs = (function genConfig() {
@@ -52,13 +51,7 @@ const {
 			devtools,
 		});
 
-		process.on('exit', () => {
-			connection.close();
-		});
-
-		signals().forEach((signal) => {
-			process.on(signal, process.exit);
-		});
+		addExitListener(::connection.close);
 
 		const runRouter = createRouter(routes);
 		connection.listen(runRouter);
