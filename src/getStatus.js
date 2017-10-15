@@ -47,7 +47,7 @@ export default async function getStatus(options = {}) {
 
 		const {
 			status, started,
-			data: { concurrency, headless, timeout, args, port },
+			data: { headless, timeout, args, port },
 		} = state;
 
 		client = await Client.create({
@@ -57,14 +57,14 @@ export default async function getStatus(options = {}) {
 		const queue = await client.send('getQueue');
 		client.close();
 
-		const { size, pending } = queue || {};
+		const { waiting, pending, idle, concurrency } = queue || {};
 
 		new Logger(options)
 			.info('Status', chalk[status === 'running' ? 'green' : 'red'](status))
 			.info('Queue Concurrency', chalk.bold.yellow(concurrency))
-			.info('Queue Idle', chalk.bold.yellow(concurrency - pending))
+			.info('Queue Idle', chalk.bold.yellow(idle))
 			.info('Queue Pending', chalk.bold.yellow(pending))
-			.info('Queue Size', chalk.bold.yellow(size))
+			.info('Queue Waiting', chalk.bold.yellow(waiting))
 			.verbose('Started at', new Date(started).toString())
 			.verbose('Headless', headless)
 			.verbose('Timeout', timeout)
