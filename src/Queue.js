@@ -2,8 +2,10 @@
 import PQueue from 'p-queue';
 
 export default class Queue {
-	constructor(options) {
+	constructor(options = {}) {
+		this.concurrency = (options.concurrency = options.concurrency || 50);
 		this._callbacks = new Map();
+		this.concurrency = options.concurrency;
 		this._queue = new PQueue(options);
 	}
 
@@ -30,7 +32,15 @@ export default class Queue {
 		return this._queue.pending;
 	}
 
-	get size() {
+	get waiting() {
 		return this._queue.size / 2;
+	}
+
+	get idle() {
+		return this.concurrency - this.pending;
+	}
+
+	get total() {
+		return this.pending + this.waiting;
 	}
 }

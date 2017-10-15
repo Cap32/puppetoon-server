@@ -27,7 +27,8 @@ export default class Routes {
 	}
 
 	getQueueSize() {
-		return { size: this._queue.size };
+		const { waiting } = this._queue;
+		return { size: waiting, waiting };
 	}
 
 	getQueuePending() {
@@ -35,9 +36,7 @@ export default class Routes {
 	}
 
 	getQueue() {
-		return {
-			size: this._queue.size,
-			pending: this._queue.pending,
-		};
+		const { waiting, pending, concurrency, total, idle } = this._queue;
+		return { waiting, pending, concurrency, total, idle };
 	}
 }
