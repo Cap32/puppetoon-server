@@ -31,12 +31,12 @@ class Logger {
 
 export default async function getStatus(options = {}) {
 	let client;
-	let intervalId;
+	let loopTimeoutId;
 
 	async function loop() {
 		const notRunning = () => {
 			logger.warn('Not running');
-			clearInterval(intervalId);
+			clearInterval(loopTimeoutId);
 		};
 
 		const bridge = await Bridge.getByName(name, name);
@@ -71,9 +71,10 @@ export default async function getStatus(options = {}) {
 			.verbose('Args', args)
 			.show()
 		;
+
+		loopTimeoutId = setTimeout(loop, 1000);
 	}
 
-	intervalId = setInterval(loop, 1000);
 	loop();
 	addExitListener(() => client && client.close());
 }
