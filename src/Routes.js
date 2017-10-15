@@ -7,19 +7,23 @@ export default class Routes {
 		this._queue = queue;
 	}
 
-	async newPage(payload) {
+	async newPage(payload, prefix) {
 		const { priority = 0 } = payload;
 		const id = uuid();
 		const wsEndpoint = this._browser.wsEndpoint();
-		await this._queue.add(id, { priority });
+		await this._queue.add(id, prefix, { priority });
 		return { id, wsEndpoint };
 	}
 
-	closePage(payload) {
+	closePage(payload, prefix) {
 		const { id } = payload;
 		if (!id) { throw new Error('Missing id'); }
-		this._queue.remove(id);
+		this._queue.remove(id, prefix);
 		return { id };
+	}
+
+	closeAll(payload, prefix) {
+		return this._queue.removeAll(prefix);
 	}
 
 	async version() {

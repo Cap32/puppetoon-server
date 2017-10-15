@@ -1,31 +1,30 @@
 
 import PQueue from 'p-queue';
+import Store from './Store';
 
 export default class Queue {
 	constructor(options = {}) {
 		this.concurrency = (options.concurrency = options.concurrency || 50);
-		this._callbacks = new Map();
 		this.concurrency = options.concurrency;
 		this._queue = new PQueue(options);
 	}
 
-	async add(id, options) {
+	async add(id, prefix, options) {
 		const queue = this._queue;
 		const maybeDelay = queue.add(() => Promise.resolve(), options);
 		queue.add(
-			() => new Promise((resolve) => this._callbacks.set(id, resolve)),
+			() => Store.create(id, prefix),
 			options,
 		);
 		return maybeDelay;
 	}
 
-	remove(id) {
-		const callbacks = this._callbacks;
-		if (callbacks.has(id)) {
-			const callback = callbacks.get(id);
-			callbacks.delete(id);
-			callback();
-		}
+	remove(id, prefix) {
+		return Store.remove(id, prefix);
+	}
+
+	removeAll(prefix) {
+		return Store.removeAll(prefix);
 	}
 
 	get pending() {

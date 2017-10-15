@@ -28,8 +28,10 @@ export default class Connection extends EventEmitter {
 			this.isAlive = true;
 		}
 
-		wss.on('connection', (ws) => {
-			logger.debug('connected');
+		wss.on('connection', (ws, request) => {
+			const prefix = request.url.slice(1);
+
+			logger.debug('connected', prefix);
 
 			ws.isAlive = true;
 			ws.on('pong', heartbeat);
@@ -41,7 +43,7 @@ export default class Connection extends EventEmitter {
 					if (!_id) { throw new Error('Missing _id'); }
 					if (!type) { throw new Error('Missing type'); }
 
-					this.emit(EventType, type, payload, function response(payload) {
+					this.emit(EventType, type, prefix, payload, (payload) => {
 						ws.send(JSON.stringify({ _id, payload }));
 					});
 				}

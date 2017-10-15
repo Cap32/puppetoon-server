@@ -3,7 +3,7 @@ import APIServer from './APIServer';
 import { signals } from 'signal-exit';
 import delay from 'delay';
 
-const apiServer = new APIServer('ws://127.0.0.1:8808');
+const apiServer = new APIServer('ws://127.0.0.1:8808/test/');
 
 apiServer.listen(async (api) => {
 	try {
@@ -25,6 +25,18 @@ apiServer.listen(async (api) => {
 
 		await api.closePage(pageInfo);
 		console.log('page closed');
+
+		for (let i = 0; i < 10; i++) {
+			await api.newPage({ debug: `debug_${i}` });
+			console.log('newPage', i);
+		}
+
+		const queue2 = await api.getQueue();
+		console.log('queue', queue2);
+
+		await api.closeAll();
+		console.log('all pages closed');
+
 		process.exit(0);
 	}
 	catch (err) {
