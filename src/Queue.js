@@ -1,30 +1,53 @@
 
 import PQueue from 'p-queue';
-import Store from './Store';
 
 export default class Queue {
-	constructor(options = {}) {
-		this.concurrency = (options.concurrency = options.concurrency || 50);
-		this.concurrency = options.concurrency;
-		this._queue = new PQueue(options);
+	constructor(config) {
+		this.concurrency = config.concurrency;
+		this._queue = new PQueue(config);
+		this._callbacks = new Map();
 	}
 
-	async add(id, prefix, options) {
+	async add(id, resolve, options) {
 		const queue = this._queue;
-		const maybeDelay = queue.add(() => Promise.resolve(), options);
-		queue.add(
-			() => Store.create(id, prefix),
-			options,
-		);
-		return maybeDelay;
+
+		const createCallback = () => {
+			const res = {
+				resolve: () => {},
+				reject: () => {},
+			};
+			res.wait = new Promise((resolve, reject) => {
+				res.resolve = resolve;
+				res.reject = () => reject(new Error('Canceled'));
+			});
+			return res;
+		};
+		this._callbacks.set(id, createCallback());
+
+		const resPromise = queue.add(resolve, options);
+		queue.add(async () => {
+			if (this._callbacks.has(id)) {
+				const callback = this._callbacks.get(id);
+				await callback.wait;
+			}
+		}, options);
+		return resPromise;
 	}
 
-	remove(id, prefix) {
-		return Store.remove(id, prefix);
+	close(id) {
+		if (this._callbacks.has(id)) {
+			const callback = this._callbacks.get(id);
+			this._callbacks.delete(id);
+			callback.resolve();
+		}
 	}
 
-	removeAll(prefix) {
-		return Store.removeAll(prefix);
+	clear() {
+		for (const callback of this._callbacks.values()) {
+			callback.reject();
+		}
+		this._callbacks.clear();
+		this._queue.clear();
 	}
 
 	get pending() {

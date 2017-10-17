@@ -17,8 +17,19 @@ export default class Browser {
 		return this;
 	}
 
-	async newPage() {
-		return this._browser.newPage();
+	async createTarget() {
+		const { targetId } = await this._browser._connection.send(
+			'Target.createTarget',
+			{ url: 'about:blank' },
+		);
+		return targetId;
+	}
+
+	async closeTarget(targetId) {
+		return this._browser._connection.send(
+			'Target.closeTarget',
+			{ targetId },
+		);
 	}
 
 	wsEndpoint() {

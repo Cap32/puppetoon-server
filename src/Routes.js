@@ -1,46 +1,36 @@
 
-import uuid from 'uuid/v4';
-
 export default class Routes {
-	constructor(browser, queue) {
-		this._browser = browser;
-		this._queue = queue;
+	async newPage(store, params) {
+		const { priority = 0 } = params;
+		return store.createTarget({ priority });
 	}
 
-	async newPage(payload, prefix) {
-		const { priority = 0 } = payload;
-		const id = uuid();
-		const wsEndpoint = this._browser.wsEndpoint();
-		await this._queue.add(id, prefix, { priority });
-		return { id, wsEndpoint };
+	async closePage(store, params) {
+		const { targetId } = params;
+		if (!targetId) { throw new Error('Missing targetId'); }
+		await store.closeTarget(targetId);
+		return { targetId };
 	}
 
-	closePage(payload, prefix) {
-		const { id } = payload;
-		if (!id) { throw new Error('Missing id'); }
-		this._queue.remove(id, prefix);
-		return { id };
+	clear(store) {
+		return store.clear();
 	}
 
-	closeAll(payload, prefix) {
-		return this._queue.removeAll(prefix);
+	async version(store) {
+		return { version: await store.browser.version() };
 	}
 
-	async version() {
-		return { version: await this._browser.version() };
-	}
-
-	getQueueSize() {
-		const { waiting } = this._queue;
+	getQueueSize(store) {
+		const { waiting } = store.queue;
 		return { size: waiting, waiting };
 	}
 
-	getQueuePending() {
-		return { pending: this._queue.pending };
+	getQueuePending(store) {
+		return { pending: store.queue.pending };
 	}
 
-	getQueue() {
-		const { waiting, pending, concurrency, total, idle } = this._queue;
+	getQueue(store) {
+		const { waiting, pending, concurrency, total, idle } = store.queue;
 		return { waiting, pending, concurrency, total, idle };
 	}
 }

@@ -29,7 +29,7 @@ class Logger {
 	}
 }
 
-export default async function getStatus(options = {}) {
+export default async function getStatus(store, options = {}) {
 	let client;
 	let loopTimeoutId;
 
@@ -51,7 +51,7 @@ export default async function getStatus(options = {}) {
 		} = state;
 
 		client = await Client.create({
-			url: `ws://127.0.0.1:${port}`,
+			url: `ws://127.0.0.1:${port}/${store}`,
 		});
 
 		const queue = await client.send('getQueue');

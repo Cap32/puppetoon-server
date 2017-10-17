@@ -2,11 +2,13 @@
 import EventEmitter from 'events';
 import WebSocket from 'ws';
 import uuid from 'uuid/v4';
+import URL from 'url';
+import QueryString from 'querystring';
 
 const EventType = 'API_CALL';
 
 export default class Client extends EventEmitter {
-	static create(options) {
+	static create(options = {}) {
 		return new Promise((resolve, reject) => {
 			const connection = new Client(options, (err) => {
 				if (err) { reject(err); }
@@ -18,7 +20,19 @@ export default class Client extends EventEmitter {
 	constructor(options, callback) {
 		super();
 
-		const ws = this._ws = new WebSocket(options.url);
+		const {
+			onError, url, concurrency,
+		} = options;
+
+		const urlObj = URL.parse(url);
+		const query = Object.assign(QueryString.parse(urlObj.query), {
+			concurrency,
+		});
+		urlObj.query = QueryString.stringify(query);
+		Reflect.deleteProperty(urlObj, 'search');
+		const wsUrl = URL.format(urlObj);
+
+		const ws = this._ws = new WebSocket(wsUrl);
 		const callbacks = new Map();
 
 		this.send = (type, payload) => {
@@ -49,7 +63,7 @@ export default class Client extends EventEmitter {
 				this.emit(EventType, _id, payload);
 			}
 			catch (err) {
-				options.onError && options.onError(err);
+				onError && onError(err);
 			}
 		});
 

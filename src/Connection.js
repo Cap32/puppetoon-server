@@ -2,6 +2,8 @@
 import EventEmitter from 'events';
 import logger from 'pot-logger';
 import WebSocket from 'ws';
+import URL from 'url';
+import QueryString from 'querystring';
 
 const EventType = 'API_CALL';
 
@@ -29,9 +31,13 @@ export default class Connection extends EventEmitter {
 		}
 
 		wss.on('connection', (ws, request) => {
-			const prefix = request.url.slice(1);
+			const { pathname, query } = URL.parse(request.url);
+			const name = pathname.slice(1) || 'root';
+			const { concurrency = 50 } = QueryString.parse(query);
 
-			logger.debug('connected', prefix);
+			logger.debug('connected', name);
+
+			const storeConfig = { name, concurrency };
 
 			ws.isAlive = true;
 			ws.on('pong', heartbeat);
@@ -43,7 +49,7 @@ export default class Connection extends EventEmitter {
 					if (!_id) { throw new Error('Missing _id'); }
 					if (!type) { throw new Error('Missing type'); }
 
-					this.emit(EventType, type, prefix, payload, (payload) => {
+					this.emit(EventType, type, storeConfig, payload, (payload) => {
 						ws.send(JSON.stringify({ _id, payload }));
 					});
 				}

@@ -1,63 +1,56 @@
 
+import Queue from './Queue';
+import logger from 'pot-logger';
+
 const stores = new Map();
 
 export default class Store {
-	static ensure(prefix) {
-		if (stores.has(prefix)) {
-			return stores.get(prefix);
-		}
+	static ensure(storeConfig, browser) {
+		const { name, ...queueConfig } = storeConfig;
+		if (stores.has(name)) { return stores.get(name); }
 		else {
-			const newStore = new Store();
-			stores.set(prefix, newStore);
-			return newStore;
+			const store = new Store(name, queueConfig, browser);
+			stores.set(name, store);
+			return store;
 		}
 	}
 
-	static create(id, prefix) {
-		const store = Store.ensure(prefix);
-		return new Promise((resolve) => {
-			store.create(id, resolve);
-		});
+	constructor(name, queueConfig, browser) {
+		this.browser = browser;
+		this.queue = new Queue(queueConfig);
+		this._lastId = 0;
+		this._targets = new Map();
+
+		logger.info(`store "${name}" created`);
+		logger.info(`concurrency: ${queueConfig.concurrency}`);
 	}
 
-	static remove(id, prefix) {
-		const store = Store.ensure(prefix);
-		store.remove(id);
+	async createTarget(options) {
+		const id = ++this._lastId;
+		return this.queue.add(id, async () => {
+			const targetId = await this.browser.createTarget();
+			this._targets.set(targetId, id);
+			return {
+				targetId,
+				wsEndpoint: this.browser.wsEndpoint,
+			};
+		}, options);
 	}
 
-	static removeAll(prefix) {
-		const store = Store.ensure(prefix);
-		return store.removeAll();
-	}
-
-	constructor() {
-		this._ids = new Map();
-	}
-
-	create(id, callback) {
-		this._ids.set(id, {
-			createdAt: new Date(),
-			callback,
-		});
-	}
-
-	remove(id) {
-		if (this._ids.has(id)) {
-			const { callback } = this._ids.get(id);
-			this._ids.delete(id);
-			callback();
-			return id;
+	async closeTarget(targetId) {
+		if (this._targets.has(targetId)) {
+			const id = this._targets.get(targetId);
+			this.queue.close(id);
 		}
-		return null;
+		return this.browser.closeTarget(targetId);
 	}
 
-	removeAll() {
-		const list = [];
-		this._ids.forEach(({ callback }, id) => {
-			this._ids.delete(id);
-			list.push(id);
-			callback();
-		});
-		return list;
+	async clear() {
+		const promises = [];
+		for (const targetId of this._targets.keys()) {
+			promises.push(this.closeTarget(targetId));
+		}
+		this.queue.clear();
+		return Promise.all(promises);
 	}
 }

@@ -2,7 +2,6 @@
 import logger, { setLoggers } from 'pot-logger';
 import Connection from './Connection';
 import Browser from './Browser';
-import Queue from './Queue';
 import Routes from './Routes';
 import createRouter from './createRouter';
 import { getDefaultLogsDir, addExitListener } from './utils';
@@ -17,7 +16,6 @@ const {
 	logLevel = 'INFO',
 	logsDir = getDefaultLogsDir(),
 	port = 8808,
-	concurrency = 50,
 	headless = true,
 	ignoreHTTPSErrors,
 	executablePath,
@@ -36,8 +34,7 @@ const {
 
 		const browser = new Browser();
 		const connection = await Connection.create({ port });
-		const queue = new Queue({ concurrency }, connection);
-		const routes = new Routes(browser, queue);
+		const routes = new Routes();
 		await browser.launch({
 			headless,
 			ignoreHTTPSErrors,
@@ -53,7 +50,7 @@ const {
 
 		addExitListener(::connection.close);
 
-		const runRouter = createRouter(routes);
+		const runRouter = createRouter(browser, routes);
 		connection.listen(runRouter);
 
 		logger.trace('browser launched');

@@ -27,12 +27,6 @@ yargs
 						default: 8808,
 						type: 'number',
 					},
-					concurrency: {
-						alias: 'c',
-						desc: 'Max concurrency',
-						default: 50,
-						type: 'number',
-					},
 					headless: {
 						desc: 'Headless mode',
 						default: true,
@@ -159,7 +153,8 @@ yargs
 		desc: 'Show status',
 		builder(yargs) {
 			yargs // eslint-disable-line
-				.usage('$0 status [options]')
+				.usage('$0 status <store> [options]')
+				.demand(1, 'Please specify store')
 				.options({
 					verbose: {
 						alias: 'v',
@@ -171,7 +166,8 @@ yargs
 			;
 		},
 		handler(argv) {
-			getStatus(argv).catch((err) => logger.error(err.message));
+			const [, store] = argv._;
+			getStatus(store, argv).catch((err) => logger.error(err.message));
 		},
 	})
 	.env(upperCase(name))
