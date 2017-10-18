@@ -52,21 +52,18 @@ export default class Store {
 	}
 
 	async disconnect(wsClient) {
-		this._wsClients.delete(wsClient);
 		const { size } = this._wsClients;
 		if (size) { await this.clear(); }
+		this._wsClients.delete(wsClient);
 		return size;
 	}
 
 	async createTarget(options) {
 		const id = ++this._lastId;
 		return this.queue.add(id, async () => {
-			const targetId = await this.browser.createTarget();
-			this._targets.set(targetId, id);
-			return {
-				targetId,
-				wsEndpoint: this.browser.wsEndpoint,
-			};
+			const res = await this.browser.createTarget();
+			this._targets.set(res.targetId, id);
+			return res;
 		}, options);
 	}
 
@@ -75,9 +72,9 @@ export default class Store {
 			const id = this._targets.get(targetId);
 			this.queue.close(id);
 		}
-		const res = await this.browser.closeTarget(targetId);
-		this._targets.delete(targetId);
-		return res;
+		const success = await this.browser.closeTarget(targetId);
+		if (success) { this._targets.delete(targetId); }
+		return { success };
 	}
 
 	async clear() {

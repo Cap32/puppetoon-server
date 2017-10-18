@@ -1,5 +1,5 @@
 
-import { createLogger } from 'pot-logger';
+import { logger, createLogger } from 'pot-logger';
 import chalk from 'chalk';
 import Store from './Store';
 
@@ -33,6 +33,7 @@ export default class Router {
 			catch (err) {
 				const { message = 'Unkown error' } = err;
 				res.error = `Failed to call "${type}": ${message}`;
+				logger.debug(err);
 			}
 			response(res);
 		}

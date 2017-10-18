@@ -53,8 +53,6 @@ const {
 		connection.onConnect(router.connect.bind(router));
 		connection.onDisconnect(router.disconnect.bind(router));
 		connection.onApiCall(router.run.bind(router));
-
-		logger.trace('browser launched');
 	}
 	catch (err) {
 		logger.fatal(err);

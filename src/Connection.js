@@ -49,6 +49,10 @@ export default class Connection extends EventEmitter {
 			ws.isAlive = true;
 			ws.on('pong', heartbeat);
 
+			ws.on('close', () => {
+				this.emit(Events.Disconnect, ws);
+			});
+
 			ws.on('message', (data) => {
 				try {
 					const { payload = {}, type, _id } = JSON.parse(data);
@@ -68,7 +72,10 @@ export default class Connection extends EventEmitter {
 
 		this._heartbeatInterval = setInterval(() => {
 			wss.clients.forEach((ws) => {
+				logger.debug('heartbeat', ws.__storeName);
+
 				if (ws.isAlive === false) {
+					logger.debug('Disconnected', ws.__storeName);
 					this.emit(Events.Disconnect, ws);
 					return ws.terminate();
 				}

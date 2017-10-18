@@ -44,6 +44,8 @@ import delay from 'delay';
 		const queue2 = await client.send('getQueue');
 		console.log('queue', queue2);
 
+		await delay(10000);
+
 		await client.send('clear');
 		console.log('all pages closed');
 
