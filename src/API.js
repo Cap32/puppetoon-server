@@ -1,5 +1,5 @@
 
-export default class Routes {
+export default class API {
 	async newPage(store, params) {
 		const { priority = 0 } = params;
 		return store.createTarget({ priority });

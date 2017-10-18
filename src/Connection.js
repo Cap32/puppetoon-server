@@ -5,7 +5,11 @@ import WebSocket from 'ws';
 import URL from 'url';
 import QueryString from 'querystring';
 
-const EventType = 'API_CALL';
+const Events = {
+	Connect: 'Connect',
+	Disconnect: 'Disconnect',
+	ApiCall: 'ApiCall',
+};
 
 export default class Connection extends EventEmitter {
 	static create(options) {
@@ -37,7 +41,10 @@ export default class Connection extends EventEmitter {
 
 			logger.debug('connected', name);
 
-			const storeConfig = { name, concurrency };
+			ws.__storeName = name;
+			ws.__queueConfig = { concurrency };
+
+			this.emit(Events.Connect, ws);
 
 			ws.isAlive = true;
 			ws.on('pong', heartbeat);
@@ -49,7 +56,7 @@ export default class Connection extends EventEmitter {
 					if (!_id) { throw new Error('Missing _id'); }
 					if (!type) { throw new Error('Missing type'); }
 
-					this.emit(EventType, type, storeConfig, payload, (payload) => {
+					this.emit(Events.ApiCall, ws, type, payload, (payload) => {
 						ws.send(JSON.stringify({ _id, payload }));
 					});
 				}
@@ -59,9 +66,12 @@ export default class Connection extends EventEmitter {
 			});
 		});
 
-		this._heartbeatInterval = setInterval(function ping() {
-			wss.clients.forEach(function each(ws) {
-				if (ws.isAlive === false) { return ws.terminate(); }
+		this._heartbeatInterval = setInterval(() => {
+			wss.clients.forEach((ws) => {
+				if (ws.isAlive === false) {
+					this.emit(Events.Disconnect, ws);
+					return ws.terminate();
+				}
 
 				ws.isAlive = false;
 				ws.ping('', false, true);
@@ -72,8 +82,16 @@ export default class Connection extends EventEmitter {
 		wss.on('error', callback);
 	}
 
-	listen(handler) {
-		this.on(EventType, handler);
+	onConnect(handler) {
+		this.on(Events.Connect, handler);
+	}
+
+	onDisconnect(handler) {
+		this.on(Events.Disconnect, handler);
+	}
+
+	onApiCall(handler) {
+		this.on(Events.ApiCall, handler);
 	}
 
 	close(callback) {

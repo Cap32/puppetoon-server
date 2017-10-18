@@ -4,25 +4,58 @@ import logger from 'pot-logger';
 
 const stores = new Map();
 
+const getStoreName = (ws) => ws.__storeName;
+
 export default class Store {
-	static ensure(storeConfig, browser) {
-		const { name, ...queueConfig } = storeConfig;
-		if (stores.has(name)) { return stores.get(name); }
+	static connect(ws, browser) {
+		const name = getStoreName(ws);
+		if (stores.has(name)) {
+			const store = stores.get(name);
+			store.connect(ws);
+			return store;
+		}
 		else {
-			const store = new Store(name, queueConfig, browser);
+			const store = new Store(ws, browser);
 			stores.set(name, store);
+			logger.info(`store "${name}" created`);
+			logger.info(`concurrency: ${ws.__queueConfig.concurrency}`);
 			return store;
 		}
 	}
 
-	constructor(name, queueConfig, browser) {
+	static async disconnect(ws) {
+		const name = getStoreName(ws);
+		if (stores.has(name)) {
+			const store = stores.get(name);
+			const size = await store.disconnect(ws);
+			if (!size) { stores.delete(name); }
+		}
+	}
+
+	static get(ws) {
+		const name = getStoreName(ws);
+		return stores.get(name);
+	}
+
+	constructor(wsClient, browser) {
+		this.connectedCount = 1;
 		this.browser = browser;
-		this.queue = new Queue(queueConfig);
+		this.queue = new Queue(wsClient.__queueConfig);
 		this._lastId = 0;
 		this._targets = new Map();
+		this._wsClients = new Set();
+		this._wsClients.add(wsClient);
+	}
 
-		logger.info(`store "${name}" created`);
-		logger.info(`concurrency: ${queueConfig.concurrency}`);
+	connect(wsClient) {
+		this._wsClients.add(wsClient);
+	}
+
+	async disconnect(wsClient) {
+		this._wsClients.delete(wsClient);
+		const { size } = this._wsClients;
+		if (size) { await this.clear(); }
+		return size;
 	}
 
 	async createTarget(options) {
@@ -42,7 +75,9 @@ export default class Store {
 			const id = this._targets.get(targetId);
 			this.queue.close(id);
 		}
-		return this.browser.closeTarget(targetId);
+		const res = await this.browser.closeTarget(targetId);
+		this._targets.delete(targetId);
+		return res;
 	}
 
 	async clear() {

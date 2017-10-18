@@ -2,8 +2,8 @@
 import logger, { setLoggers } from 'pot-logger';
 import Connection from './Connection';
 import Browser from './Browser';
-import Routes from './Routes';
-import createRouter from './createRouter';
+import Router from './Router';
+import API from './API';
 import { getDefaultLogsDir, addExitListener } from './utils';
 import { resolve } from 'path';
 
@@ -32,10 +32,7 @@ const {
 	try {
 		setLoggers({ logLevel, logsDir: resolve(logsDir) });
 
-		const browser = new Browser();
-		const connection = await Connection.create({ port });
-		const routes = new Routes();
-		await browser.launch({
+		const browser = new Browser({
 			headless,
 			ignoreHTTPSErrors,
 			executablePath,
@@ -47,11 +44,15 @@ const {
 			userDataDir,
 			devtools,
 		});
+		const connection = await Connection.create({ port });
+		const api = new API();
 
 		addExitListener(::connection.close);
 
-		const runRouter = createRouter(browser, routes);
-		connection.listen(runRouter);
+		const router = new Router(browser, api);
+		connection.onConnect(router.connect.bind(router));
+		connection.onDisconnect(router.disconnect.bind(router));
+		connection.onApiCall(router.run.bind(router));
 
 		logger.trace('browser launched');
 	}
