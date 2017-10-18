@@ -15,7 +15,10 @@ class Chunk {
 
 	async browser() {
 		if (this._browser) { return this._browser; }
-		return (this._browser = await this._launch());
+		this._browser = this._launch();
+		const browser = await this._browser;
+		this._browser = browser;
+		return this._browser;
 	}
 
 	add(id) {
@@ -61,7 +64,6 @@ export default class Browser {
 
 		for (const chunk of this._chunks) {
 			if (chunk.size < Max) {
-				logger.debug('chunk.size', chunk.size);
 				return response(chunk);
 			}
 		}

@@ -1,5 +1,6 @@
 
 import PQueue from 'p-queue';
+import logger from 'pot-logger';
 
 export default class Queue {
 	constructor(config) {
@@ -13,12 +14,10 @@ export default class Queue {
 
 		const createCallback = () => {
 			const res = {
-				resolve: () => {},
-				reject: () => {},
+				done: () => {},
 			};
-			res.wait = new Promise((resolve, reject) => {
-				res.resolve = resolve;
-				res.reject = () => reject(new Error('Canceled'));
+			res.wait = new Promise((resolve) => {
+				res.done = resolve;
 			});
 			return res;
 		};
@@ -28,7 +27,13 @@ export default class Queue {
 		queue.add(async () => {
 			if (this._callbacks.has(id)) {
 				const callback = this._callbacks.get(id);
-				await callback.wait;
+				try {
+					await callback.wait;
+				}
+				catch (err) {
+					callback.done({ error: err.message });
+					logger.error(err);
+				}
 			}
 		}, options);
 		return resPromise;
@@ -38,13 +43,13 @@ export default class Queue {
 		if (this._callbacks.has(id)) {
 			const callback = this._callbacks.get(id);
 			this._callbacks.delete(id);
-			callback.resolve();
+			callback.done();
 		}
 	}
 
 	clear() {
 		for (const callback of this._callbacks.values()) {
-			callback.reject();
+			callback.done({ error: 'Canceled' });
 		}
 		this._callbacks.clear();
 		this._queue.clear();

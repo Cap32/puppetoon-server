@@ -4,6 +4,7 @@ import logger from 'pot-logger';
 import WebSocket from 'ws';
 import URL from 'url';
 import QueryString from 'querystring';
+import Store from './Store';
 
 const Events = {
 	Connect: 'Connect',
@@ -37,7 +38,14 @@ export default class Connection extends EventEmitter {
 		wss.on('connection', (ws, request) => {
 			const { pathname, query } = URL.parse(request.url);
 			const name = pathname.slice(1) || 'root';
-			const { concurrency = 50 } = QueryString.parse(query);
+			const config = QueryString.parse(query);
+			const concurrency = ~~config.concurrency || 50;
+			const ensureStore = config.ensureStore !== 'false';
+
+			if (!ensureStore && !Store.has(ws)) {
+				ws.terminate();
+				return;
+			}
 
 			logger.debug('connected', name);
 
@@ -72,7 +80,7 @@ export default class Connection extends EventEmitter {
 
 		this._heartbeatInterval = setInterval(() => {
 			wss.clients.forEach((ws) => {
-				logger.debug('heartbeat', ws.__storeName);
+				logger.trace('heartbeat', ws.__storeName);
 
 				if (ws.isAlive === false) {
 					logger.debug('Disconnected', ws.__storeName);

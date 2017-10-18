@@ -12,11 +12,16 @@ export default class Router {
 	}
 
 	connect(ws) {
-		Store.connect(ws, this._browser, this._api);
+		Store.connect(ws, this._browser);
 	}
 
 	async disconnect(ws) {
-		return Store.disconnect(ws);
+		try {
+			await Store.disconnect(ws);
+		}
+		catch (err) {
+			logger.error(err);
+		}
 	}
 
 	async run(ws, type, params, response) {

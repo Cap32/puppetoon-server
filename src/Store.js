@@ -7,6 +7,11 @@ const stores = new Map();
 const getStoreName = (ws) => ws.__storeName;
 
 export default class Store {
+	static has(ws) {
+		const name = getStoreName(ws);
+		return stores.has(name);
+	}
+
 	static connect(ws, browser) {
 		for (const [name] of stores.entries()) {
 			logger.info('store', name);

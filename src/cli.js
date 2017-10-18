@@ -167,7 +167,7 @@ yargs
 		},
 		handler(argv) {
 			const [, store] = argv._;
-			getStatus(store, argv).catch((err) => logger.error(err.message));
+			getStatus(store, argv).catch((err) => console.log(err) || logger.error(err.message));
 		},
 	})
 	.env(upperCase(name))

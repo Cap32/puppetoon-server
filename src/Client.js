@@ -4,6 +4,7 @@ import WebSocket from 'ws';
 import uuid from 'uuid/v4';
 import URL from 'url';
 import QueryString from 'querystring';
+import delay from 'delay';
 
 const EventType = 'API_CALL';
 
@@ -21,15 +22,16 @@ export default class Client extends EventEmitter {
 		super();
 
 		const {
-			onError, url, concurrency,
+			onError, url, concurrency, ensureStore,
 		} = options;
 
 		const urlObj = URL.parse(url);
 		const query = Object.assign(QueryString.parse(urlObj.query), {
 			concurrency,
+			ensureStore,
 		});
-		urlObj.query = QueryString.stringify(query);
-		Reflect.deleteProperty(urlObj, 'search');
+
+		urlObj.search = `?${QueryString.stringify(query)}`;
 		const wsUrl = URL.format(urlObj);
 
 		const ws = this._ws = new WebSocket(wsUrl);
@@ -69,6 +71,11 @@ export default class Client extends EventEmitter {
 
 		ws.on('open', callback);
 		ws.on('error', callback);
+	}
+
+	async isConnected() {
+		await delay(100);
+		return this._ws && this._ws.readyState === WebSocket.OPEN;
 	}
 
 	close() {
