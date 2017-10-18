@@ -8,6 +8,10 @@ const getStoreName = (ws) => ws.__storeName;
 
 export default class Store {
 	static connect(ws, browser) {
+		for (const [name] of stores.entries()) {
+			logger.info('store', name);
+		}
+
 		const name = getStoreName(ws);
 		if (stores.has(name)) {
 			const store = stores.get(name);
@@ -52,10 +56,9 @@ export default class Store {
 	}
 
 	async disconnect(wsClient) {
-		const { size } = this._wsClients;
-		if (size) { await this.clear(); }
+		if (this._wsClients.size) { await this.clear(); }
 		this._wsClients.delete(wsClient);
-		return size;
+		return this._wsClients.size;
 	}
 
 	async createTarget(options) {
