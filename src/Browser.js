@@ -103,4 +103,8 @@ export default class Browser {
 			return res;
 		}
 	}
+
+	get size() {
+		return this._chunks.size;
+	}
 }

@@ -20,6 +20,10 @@ export default class API {
 		return { version: await store.browser.version() };
 	}
 
+	getStatus(store) {
+		return store.getStatus();
+	}
+
 	getQueueSize(store) {
 		const { waiting } = store.queue;
 		return { size: waiting, waiting };

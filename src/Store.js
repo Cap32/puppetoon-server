@@ -7,11 +7,6 @@ const stores = new Map();
 const getStoreName = (ws) => ws.__storeName;
 
 export default class Store {
-	static has(ws) {
-		const name = getStoreName(ws);
-		return stores.has(name);
-	}
-
 	static connect(ws, browser) {
 		for (const [name] of stores.entries()) {
 			logger.info('store', name);
@@ -24,7 +19,7 @@ export default class Store {
 			return store;
 		}
 		else {
-			const store = new Store(ws, browser);
+			const store = new Store(name, ws, browser);
 			stores.set(name, store);
 			logger.info(`store "${name}" created`);
 			logger.info(`concurrency: ${ws.__queueConfig.concurrency}`);
@@ -46,8 +41,9 @@ export default class Store {
 		return stores.get(name);
 	}
 
-	constructor(wsClient, browser) {
-		this.connectedCount = 1;
+	constructor(name, wsClient, browser) {
+		this._name = name;
+		this._createdAt = new Date().toISOString();
 		this.browser = browser;
 		this.queue = new Queue(wsClient.__queueConfig);
 		this._lastId = 0;
@@ -92,5 +88,20 @@ export default class Store {
 		}
 		this.queue.clear();
 		return Promise.all(promises);
+	}
+
+	async getStatus() {
+		const { concurrency, pending, waiting, idle } = this.queue;
+		return {
+			name: this._name,
+			createdAt: this._createdAt,
+			targets: this._targets.size,
+			connections: this._wsClients.size,
+			concurrency,
+			pending,
+			waiting,
+			idle,
+			browsers: this.browser.size,
+		};
 	}
 }

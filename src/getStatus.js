@@ -1,21 +1,19 @@
 
-import { Bridge } from 'pot-js';
-import logger from 'pot-logger';
-import { name } from '../package.json';
+import { logger, setLoggers } from 'pot-logger';
 import Client from './Client';
 import chalk from 'chalk';
 import logUpdate from 'log-update';
 import { addExitListener } from './utils';
+import delay from 'delay';
 
-class Logger {
+class InstantLogger {
 	constructor(options) {
 		this._data = [];
 		this._options = options;
 	}
 
-	info(...args) {
-		const line = args.join(' ');
-		this._data.push(line);
+	info(title, value = '', style = 'yellow') {
+		this._data.push(`${title} ${chalk.bold[style](value)}`);
 		return this;
 	}
 
@@ -30,63 +28,58 @@ class Logger {
 }
 
 export default async function getStatus(store, options = {}) {
-	let client;
-	let loopTimeoutId;
+	const { port = 8808, logLevel = 'INFO', verbose } = options;
 
-	async function loop() {
-		try {
-			const notRunning = () => {
-				logger.warn('Not running');
-				clearInterval(loopTimeoutId);
-			};
+	const client = await Client.create({
+		url: `ws://127.0.0.1:${port}/${store}`,
+	});
 
-			const bridge = await Bridge.getByName(name, name);
-			if (!bridge) { return notRunning(); }
+	setLoggers('logLevel', logLevel);
 
-			const state = await bridge.getState();
-			if (!state) { return notRunning(); }
+	addExitListener(() => client && client.close());
 
+	try {
+		while (true) {
+			const status = await client.send('getStatus');
 			const {
-				status, started,
-				data: { headless, timeout, args, port },
-			} = state;
+				name,
+				createdAt,
+				connections,
+				browsers,
+				waiting,
+				pending,
+				idle,
+				concurrency,
+			} = status || {};
 
-			client = await Client.create({
-				url: `ws://127.0.0.1:${port}/${store}`,
-				ensureStore: false,
-			});
+			// ignore `getStatus` connection
+			const count = connections - 1;
+			const instantLogger = new InstantLogger({ verbose });
 
-			const isConnected = await client.isConnected();
-			if (!isConnected) {
-				return logger.warn('Store not found');
+			if (count < 1) {
+				instantLogger
+					.info(chalk.red(`"${name}" has not created or has closed`))
+					.show()
+				;
+				return process.exit(0);
 			}
 
-			const queue = await client.send('getQueue');
-
-			client.close();
-
-			const { waiting, pending, idle, concurrency } = queue || {};
-
-			new Logger(options)
-				.info('Status', chalk[status === 'running' ? 'green' : 'red'](status))
-				.info('Queue Concurrency', chalk.bold.yellow(concurrency))
-				.info('Queue Idle', chalk.bold.yellow(idle))
-				.info('Queue Pending', chalk.bold.yellow(pending))
-				.info('Queue Waiting', chalk.bold.yellow(waiting))
-				.verbose('Started at', new Date(started).toString())
-				.verbose('Headless', headless)
-				.verbose('Timeout', timeout)
-				.verbose('Args', args)
+			instantLogger
+				.info('Connections', count)
+				.info('Queue Concurrency', concurrency)
+				.info('Queue Idle', idle)
+				.info('Queue Pending', pending)
+				.info('Queue Waiting', waiting)
+				.verbose('Started at', new Date(createdAt).toString(), 'grey')
+				.verbose('Browsers', browsers)
 				.show()
 			;
 
-			loopTimeoutId = setTimeout(loop, 1000);
-		}
-		catch (err) {
-			console.error(err.message);
+			await delay(1000);
 		}
 	}
-
-	loop();
-	addExitListener(() => client && client.close());
+	catch (err) {
+		logger.warn(err.message || 'Not running');
+		logger.debug(err);
+	}
 }

@@ -4,9 +4,11 @@ import WebSocket from 'ws';
 import uuid from 'uuid/v4';
 import URL from 'url';
 import QueryString from 'querystring';
-import delay from 'delay';
 
-const EventType = 'API_CALL';
+const Events = {
+	ApiCall: 'ApiCall',
+	Close: 'Close',
+};
 
 export default class Client extends EventEmitter {
 	static create(options = {}) {
@@ -22,13 +24,12 @@ export default class Client extends EventEmitter {
 		super();
 
 		const {
-			onError, url, concurrency, ensureStore,
+			onError, url, concurrency,
 		} = options;
 
 		const urlObj = URL.parse(url);
 		const query = Object.assign(QueryString.parse(urlObj.query), {
 			concurrency,
-			ensureStore,
 		});
 
 		urlObj.search = `?${QueryString.stringify(query)}`;
@@ -51,7 +52,7 @@ export default class Client extends EventEmitter {
 			});
 		};
 
-		this.on(EventType, (_id, payload) => {
+		this.on(Events.ApiCall, (_id, payload) => {
 			if (callbacks.has(_id)) {
 				const handler = callbacks.get(_id);
 				handler(payload);
@@ -62,20 +63,23 @@ export default class Client extends EventEmitter {
 			try {
 				const { _id, payload } = JSON.parse(message);
 				if (!_id) { throw new Error('Missing _id'); }
-				this.emit(EventType, _id, payload);
+				this.emit(Events.ApiCall, _id, payload);
 			}
 			catch (err) {
 				onError && onError(err);
 			}
 		});
 
+		ws.on('close', () => {
+			this.emit(Events.Close);
+		});
+
 		ws.on('open', callback);
 		ws.on('error', callback);
 	}
 
-	async isConnected() {
-		await delay(100);
-		return this._ws && this._ws.readyState === WebSocket.OPEN;
+	onClose(handler) {
+		this.on(Events.Close, handler);
 	}
 
 	close() {

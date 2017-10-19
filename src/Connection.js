@@ -40,17 +40,11 @@ export default class Connection extends EventEmitter {
 			const name = pathname.slice(1) || 'root';
 			const config = QueryString.parse(query);
 			const concurrency = ~~config.concurrency || 50;
-			const ensureStore = config.ensureStore !== 'false';
-
-			if (!ensureStore && !Store.has(ws)) {
-				ws.terminate();
-				return;
-			}
-
-			logger.debug('connected', name);
 
 			ws.__storeName = name;
 			ws.__queueConfig = { concurrency };
+
+			logger.debug('connected', name);
 
 			this.emit(Events.Connect, ws);
 
