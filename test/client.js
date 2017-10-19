@@ -6,7 +6,8 @@ import delay from 'delay';
 (async function main() {
 	try {
 		const client = await Client.create({
-			url: 'ws://127.0.0.1:8808/test',
+			url: 'ws://127.0.0.1:8808',
+			store: 'test',
 		});
 
 		process.on('exit', () => {

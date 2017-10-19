@@ -24,15 +24,16 @@ export default class Client extends EventEmitter {
 		super();
 
 		const {
-			onError, url, concurrency,
+			onError, url, concurrency, store,
 		} = options;
 
 		const urlObj = URL.parse(url);
 		const query = Object.assign(QueryString.parse(urlObj.query), {
 			concurrency,
 		});
-
 		urlObj.search = `?${QueryString.stringify(query)}`;
+		if (store) { urlObj.pathname = store; }
+
 		const wsUrl = URL.format(urlObj);
 
 		const ws = this._ws = new WebSocket(wsUrl);

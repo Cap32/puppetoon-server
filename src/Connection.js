@@ -4,7 +4,6 @@ import logger from 'pot-logger';
 import WebSocket from 'ws';
 import URL from 'url';
 import QueryString from 'querystring';
-import Store from './Store';
 
 const Events = {
 	Connect: 'Connect',
