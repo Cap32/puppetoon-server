@@ -57,8 +57,8 @@ export default class Store {
 	}
 
 	async disconnect(wsClient) {
-		if (this._wsClients.size) { await this.clear(); }
 		this._wsClients.delete(wsClient);
+		if (!this._wsClients.size) { await this.clear(); }
 		return this._wsClients.size;
 	}
 
