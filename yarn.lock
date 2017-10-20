@@ -3745,9 +3745,9 @@ punycode@1.4.1, punycode@^1.4.1:
   version "1.4.1"
   resolved "http://registry.npm.taobao.org/punycode/download/punycode-1.4.1.tgz#c0d5a63b2718800ad8e1eb0fa5269c84dd41845e"
 
-puppeteer@^0.11.0:
-  version "0.11.0"
-  resolved "http://registry.npm.taobao.org/puppeteer/download/puppeteer-0.11.0.tgz#0a2b856f3c2745a5884c6dde9fb44f96663988ed"
+puppeteer@^0.12.0:
+  version "0.12.0"
+  resolved "http://registry.npm.taobao.org/puppeteer/download/puppeteer-0.12.0.tgz#9c421930851594dfdd479d07646666a74ced7719"
   dependencies:
     debug "^2.6.8"
     extract-zip "^1.6.5"
