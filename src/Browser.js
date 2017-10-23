@@ -5,6 +5,8 @@ import puppeteer from 'puppeteer';
 // const Max = 4;
 const Max = 100;
 
+let prevLocalTargetId = 0;
+
 class Chunk {
 	constructor(launch) {
 		this._launch = launch;
@@ -21,16 +23,16 @@ class Chunk {
 		return this._browser;
 	}
 
-	add(id) {
-		return this._targets.add(id);
+	add(target) {
+		return this._targets.add(target);
 	}
 
-	delete(id) {
-		return this._targets.delete(id);
+	delete(target) {
+		return this._targets.delete(target);
 	}
 
-	has(id) {
-		return this._targets.has(id);
+	has(target) {
+		return this._targets.has(target);
 	}
 
 	get size() {
@@ -51,37 +53,54 @@ export default class Browser {
 	}
 
 	async createTarget() {
+		const localTargetId = ++prevLocalTargetId;
+
 		const response = async (chunk) => {
+			let targetId;
 			const browser = await chunk.browser();
 			const wsEndpoint = browser.wsEndpoint();
-			const { targetId } = await browser._connection.send(
-				'Target.createTarget',
-				{ url: 'about:blank' },
-			);
-			chunk.add(targetId);
+			try {
+				const res = await browser._connection.send(
+					'Target.createTarget',
+					{ url: 'about:blank' },
+				);
+				targetId = res.targetId;
+				chunk.delete(localTargetId);
+				chunk.add(targetId);
+			}
+			catch (err) {
+				chunk.delete(localTargetId);
+				throw err;
+			}
 			return { targetId, wsEndpoint };
 		};
 
 		for (const chunk of this._chunks) {
 			if (chunk.size < Max) {
+				chunk.add(localTargetId);
 				return response(chunk);
 			}
 		}
 
 		const chunk = new Chunk(this._launch.bind(this));
 		this._chunks.add(chunk);
+		chunk.add(localTargetId);
 		return response(chunk);
 	}
 
 	async closeTarget(targetId) {
+
+		// is `localTargetId`
+		if (targetId > 0) { return false; }
+
 		for (const chunk of this._chunks) {
 			if (chunk.has(targetId)) {
 				const browser = await chunk.browser();
 				await browser._connection.send('Target.closeTarget', { targetId });
 				chunk.delete(targetId);
 				if (!chunk.size) {
-					await browser.close();
 					this._chunks.delete(chunk);
+					await browser.close();
 				}
 				return true;
 			}
