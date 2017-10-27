@@ -76,9 +76,17 @@ export default class Store {
 			const id = this._targets.get(targetId);
 			this.queue.close(id);
 		}
-		const success = await this.browser.closeTarget(targetId);
-		if (success) { this._targets.delete(targetId); }
-		return { success };
+		const del = () => this._targets.delete(targetId);
+		let success = false;
+		try {
+			success = await this.browser.closeTarget(targetId);
+			del();
+			return { success };
+		}
+		catch (err) {
+			del(); // No matter it was success or not, delete `targetId` from targets
+			throw err;
+		}
 	}
 
 	async clear() {
