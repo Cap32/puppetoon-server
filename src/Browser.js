@@ -2,9 +2,6 @@
 import { logger } from 'pot-logger';
 import puppeteer from 'puppeteer';
 
-// const Max = 4;
-const Max = 10;
-
 let prevLocalTargetId = 0;
 
 class Chunk {
@@ -43,9 +40,10 @@ class Chunk {
 }
 
 export default class Browser {
-	constructor(launchOptions) {
+	constructor(launchOptions, maxTabs) {
 		this._chunks = new Set();
 		this._launchOptions = launchOptions;
+		this._maxTabs = Math.max(~~maxTabs, 1);
 	}
 
 	async _launch() {
@@ -78,7 +76,7 @@ export default class Browser {
 		};
 
 		for (const chunk of this._chunks) {
-			if (chunk.count < Max) {
+			if (chunk.count < this._maxTabs) {
 				chunk.add(localTargetId);
 				return response(chunk);
 			}

@@ -26,6 +26,7 @@ const {
 	dumpio,
 	userDataDir,
 	devtools,
+	maxTabs = 10,
 } = configs;
 
 (async function main() {
@@ -43,7 +44,7 @@ const {
 			dumpio,
 			userDataDir,
 			devtools,
-		});
+		}, maxTabs);
 		const connection = await Connection.create({ port });
 		const api = new API();
 
