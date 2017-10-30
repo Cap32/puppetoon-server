@@ -3,7 +3,7 @@ import { logger } from 'pot-logger';
 import puppeteer from 'puppeteer';
 
 // const Max = 4;
-const Max = 100;
+const Max = 10;
 
 let prevLocalTargetId = 0;
 
@@ -12,6 +12,7 @@ class Chunk {
 		this._launch = launch;
 		this._targets = new Set();
 		this._isPending = false;
+		this.count = 0;
 		this._browser = null;
 	}
 
@@ -24,6 +25,7 @@ class Chunk {
 	}
 
 	add(target) {
+		this.count++;
 		return this._targets.add(target);
 	}
 
@@ -76,7 +78,7 @@ export default class Browser {
 		};
 
 		for (const chunk of this._chunks) {
-			if (chunk.size < Max) {
+			if (chunk.count < Max) {
 				chunk.add(localTargetId);
 				return response(chunk);
 			}
