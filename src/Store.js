@@ -8,10 +8,6 @@ const getStoreName = (ws) => ws.__storeName;
 
 export default class Store {
 	static connect(ws, browser) {
-		for (const [name] of stores.entries()) {
-			logger.info('store', name);
-		}
-
 		const name = getStoreName(ws);
 		if (stores.has(name)) {
 			const store = stores.get(name);
