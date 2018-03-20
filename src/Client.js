@@ -49,7 +49,11 @@ export default class Client extends EventEmitter {
 					else { resolve(res); }
 				});
 
-				this._ws.send(JSON.stringify({ _id, type, payload }));
+				this._ws.send(JSON.stringify({ _id, type, payload }), (err) => {
+					if (err) {
+						reject(err);
+					}
+				});
 			});
 		};
 
