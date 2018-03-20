@@ -30,13 +30,19 @@ yargs
 					headless: {
 						desc: 'Headless mode',
 						default: true,
-						type: 'bool',
+						type: 'boolean',
 					},
 					daemon: {
 						alias: 'd',
 						desc: 'Use as a daemon',
 						default: true,
-						type: 'bool',
+						type: 'boolean',
+					},
+					dev: {
+						alias: 'D',
+						desc: 'Dev mode',
+						default: false,
+						type: 'boolean',
 					},
 					logLevel: {
 						alias: 'l',
@@ -49,7 +55,7 @@ yargs
 					force: {
 						alias: 'f',
 						desc: 'Force restart even if the process is exists',
-						type: 'bool',
+						type: 'boolean',
 					},
 					cwd: {
 						desc: 'Root dir. Defaults to `process.cwd()`',
@@ -105,17 +111,27 @@ yargs
 		},
 		async handler(argv) {
 			try {
+				const { dev, ...options } = argv;
+
+				if (dev) {
+					options.headless = false;
+					options.devtools = true;
+					if (!process.env.NODE_ENV) {
+						process.env.NODE_ENV = 'development';
+					}
+				}
+
 				await start({
-					...argv,
+					...options,
 					name,
-					daemon: isDev ? false : argv.daemon,
-					logLevel: isDev ? 'DEBUG' : argv.logLevel,
+					daemon: (isDev || dev) ? false : argv.daemon,
+					logLevel: (isDev || dev) ? 'DEBUG' : argv.logLevel,
 					workspace: name,
 					execCommand: isDev ? 'babel-node' : 'node',
-					maxRestarts: isDev ? 0 : -1,
+					maxRestarts: (isDev || dev) ? 0 : -1,
 					inspect: isDev,
-					production: !isDev,
-					watch: isDev,
+					production: !(isDev || dev),
+					watch: (isDev || dev),
 					entry: join(__dirname, 'index.js'),
 					configToEnv: 'PUPPETOON_ARGS',
 				});
