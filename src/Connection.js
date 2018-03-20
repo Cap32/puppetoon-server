@@ -61,9 +61,17 @@ export default class Connection extends EventEmitter {
 					if (!_id) { throw new Error('Missing _id'); }
 					if (!type) { throw new Error('Missing type'); }
 
-					this.emit(Events.ApiCall, ws, type, payload, (payload) => {
-						ws.send(JSON.stringify({ _id, payload }), (err) => {
-							logger.error('Failed to send message', err);
+					this.emit(Events.ApiCall, ws, type, payload, async (payload) => {
+						return new Promise((resolve, reject) => {
+							ws.send(JSON.stringify({ _id, payload }), (err) => {
+								if (err) {
+									err.targetId = payload.targetId;
+									reject(err);
+								}
+								else {
+									resolve();
+								}
+							});
 						});
 					});
 				}

@@ -34,13 +34,23 @@ export default class Router {
 			try {
 				res = await handler(store, params);
 				this._responseLogger.info(styledType, res);
+				await response(res);
 			}
 			catch (err) {
 				const { message = 'Unkown error' } = err;
 				res.error = `Failed to call "${type}": ${message}`;
-				logger.debug(err);
+
+				if (err.message !== 'not opened') {
+					logger.error(err);
+				}
+
+				const { closePage } = (this._api || {});
+				if (closePage) {
+					closePage(store, { targetId: err.targetId }).catch((err) => {
+						logger.debug(err);
+					});
+				}
 			}
-			response(res);
 		}
 		else {
 			this._requestLogger.warn('Unknown type', type);
